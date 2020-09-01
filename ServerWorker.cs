@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace TCPServer
 {
@@ -16,12 +17,16 @@ namespace TCPServer
             TcpListener server = new TcpListener(IPAddress.Loopback, 7);
             server.Start();
 
-            // We make the server accept the call from client
-            TcpClient socket = server.AcceptTcpClient();
-
-            DoClient(socket);
-
-            socket.Close();
+            while (true)
+            {
+                // We make the server accept the call from client
+                TcpClient socket = server.AcceptTcpClient();
+                Task.Run(() =>
+                {
+                    TcpClient tempSocket = socket;
+                    DoClient(tempSocket);
+                });
+            }
         }
 
         private static void DoClient(TcpClient socket)
@@ -37,6 +42,8 @@ namespace TCPServer
             // Respond to the client
             sw.WriteLine(str);
             sw.Flush(); // Emptying the buffer
+
+            socket.Close();
         }
     }
 }
